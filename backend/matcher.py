@@ -1,5 +1,5 @@
 from backend.github_api import get_user_repos, search_good_first_issues
-
+from backend.profile_analyzer import analyze_profile
 
 def run_matching_pipeline(username):
 
@@ -12,16 +12,9 @@ def run_matching_pipeline(username):
         return []
 
     # Extract top languages
-    languages = [repo['language'] for repo in repos if repo.get('language')]
-    top_languages = list(set(languages))
+    profile = analyze_profile(repos)
+    top_languages = profile.get('top_languages', ["Python"])
 
-    # Fallback if empty
-    if not top_languages:
-        top_languages = ["Python"]
-
-    print("LANGUAGES:", top_languages)
-
-    profile = {'top_languages': top_languages}
 
     # Search issues
     all_issues = []
