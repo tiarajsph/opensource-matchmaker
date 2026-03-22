@@ -1,8 +1,16 @@
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from backend.matcher import run_matching_pipeline
 from backend.health_check import check_repo_health
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
