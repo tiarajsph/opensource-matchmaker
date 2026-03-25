@@ -56,8 +56,16 @@ def search_good_first_issues(language):
             "repo_name": issue["repository_url"].split("/")[-1],
             "repo_url": issue["repository_url"],  
             "issue_title": issue["title"],
+            "issue_body": issue.get("body", ""),
             "issue_url": issue["html_url"],
-            "language": language
+            "language": language,
+            "assignees": issue.get("assignees", []),
+            "comments": issue.get("comments", 0),
+            "updated_at": issue.get("updated_at", None),
+            "created_at": issue.get("created_at", None),
+            "labels": [label["name"] for label in issue.get("labels", [])],
+            "is_locked": issue.get("locked", False),
+            "state": issue.get("state", "open"),
         }
 
         issues.append(issue_info)
