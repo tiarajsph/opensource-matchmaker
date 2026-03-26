@@ -1,7 +1,7 @@
 from backend.github_api import get_user_repos, search_good_first_issues
 from backend.profile_analyzer import analyze_profile
 
-def run_matching_pipeline(username):
+def run_matching_pipeline(username,language=None):
 
     # Fetch user repos
     repos = get_user_repos(username)
@@ -27,6 +27,9 @@ def run_matching_pipeline(username):
         os.path.exists(os.path.join(root_dir, 'CONTRIBUTING.rst')) or
         os.path.exists(os.path.join(root_dir, 'CONTRIBUTING.txt'))
     )
+
+    if language:
+        top_languages = [language]
 
     for lang in top_languages:
         issues = search_good_first_issues(lang)

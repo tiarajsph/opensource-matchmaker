@@ -1,8 +1,9 @@
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI
+from fastapi import FastAPI,Query
 from backend.matcher import run_matching_pipeline
 from backend.health_check import check_repo_health
 from backend.ai_description import explain_issue
+from backend.github_api import search_good_first_issues
 
 app = FastAPI()
 
@@ -21,14 +22,14 @@ def home():
 
 
 @app.get("/recommend/{username}")
-def recommend(username: str):
+def recommend(username: str, language: str = Query(None)):
 
     try:
-        matches = run_matching_pipeline(username)
+        
+        matches = run_matching_pipeline(username, language)
 
         print("MATCHES:", matches)
 
-        # Apply health check
         filtered_matches = []
         for match in matches:
             repo = match.get("repo", {})
@@ -48,7 +49,6 @@ def recommend(username: str):
             "error": str(e),
             "recommendations": []
         }
-
 
 @app.get("/health-test")
 def test_health():
@@ -77,3 +77,5 @@ def explain(data: dict):
     explanation = explain_issue(title, body)
 
     return {"explanation": explanation}
+
+
