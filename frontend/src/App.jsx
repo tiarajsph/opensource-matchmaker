@@ -4,41 +4,40 @@ import remarkGfm from "remark-gfm";
 
 function App() {
   const [username, setUsername] = useState("");
+  const [language, setLanguage] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [explanations, setExplanations] = useState({});
   const [loadingExplain, setLoadingExplain] = useState(null);
   const [selectedExplanation, setSelectedExplanation] = useState(null);
 
- const handleExplain = async (item) => {
-  setLoadingExplain(item.issue_url);
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/explain`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+  const handleExplain = async (item) => {
+    setLoadingExplain(item.issue_url);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/explain`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: item.issue_title,
+          body: item.issue_body || item.issue_title,
+        }),
+      });
+
+      const data = await res.json();
+
+      setSelectedExplanation({
         title: item.issue_title,
-        body: item.issue_body || item.issue_title,
-      }),
-    });
+        text: data.explanation,
+      });
 
-    const data = await res.json();
+    } catch (err) {
+      console.error(err);
+    }
+    setLoadingExplain(null);
+  };
 
-    setSelectedExplanation({
-      title: item.issue_title,
-      text: data.explanation,
-    });
-
-  } catch (err) {
-    console.error(err);
-  }
-  setLoadingExplain(null);
-};
-
-  // ✨ Cursor glow
   useEffect(() => {
     const handleMove = (e) => {
       const glow = document.getElementById("glow");
@@ -59,7 +58,9 @@ function App() {
     setHasSearched(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/recommend/${username}`);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/recommend/${username}?language=${language}`
+      );
       const data = await res.json();
       setResults(data.recommendations || []);
     } catch (err) {
@@ -72,31 +73,26 @@ function App() {
   return (
     <div className="min-h-screen bg-[#0d1117] text-white relative overflow-hidden">
 
-      {/* ✨ GRID BACKGROUND */}
+      {/* Background */}
       <div className="absolute inset-0 -z-20 bg-[linear-gradient(to_right,#22c55e10_1px,transparent_1px),linear-gradient(to_bottom,#22c55e10_1px,transparent_1px)] bg-[size:40px_40px]" />
-
-      {/* ✨ SUBTLE GLOW LAYER */}
       <div className="absolute inset-0 -z-10 bg-green-500 opacity-10 blur-3xl animate-pulse" />
 
-      {/* ✨ CURSOR GLOW */}
       <div
         id="glow"
         className="fixed w-40 h-40 bg-green-500 opacity-20 blur-3xl rounded-full pointer-events-none"
       ></div>
 
-      {/* 🔹 LANDING */}
+      {/* LANDING */}
       {!hasSearched && (
-        <div className="flex flex-col items-center justify-center h-screen px-4 text-center transition-all duration-500">
+        <div className="flex flex-col items-center justify-center h-screen px-4 text-center">
 
-          <h1 className="text-5xl font-bold mb-4 tracking-tight">
-            FirstIssue
-          </h1>
+          <h1 className="text-5xl font-bold mb-4">FirstIssue</h1>
 
           <p className="text-gray-400 mb-8 max-w-md">
             Discover open-source issues tailored to your skills
           </p>
 
-          <div className="flex gap-2 bg-[#161b22] border border-gray-700 p-2 rounded-xl shadow-lg backdrop-blur-md">
+          <div className="flex gap-2 bg-[#161b22] border border-gray-700 p-2 rounded-xl">
             <input
               className="px-4 py-2 bg-transparent outline-none text-white placeholder-gray-500 w-64"
               placeholder="GitHub username"
@@ -106,7 +102,7 @@ function App() {
             />
             <button
               onClick={fetchRecommendations}
-              className="bg-green-500 text-black px-4 py-2 rounded-lg hover:bg-green-400 transition"
+              className="bg-green-500 text-black px-4 py-2 rounded-lg hover:bg-green-400"
             >
               Search
             </button>
@@ -115,11 +111,10 @@ function App() {
         </div>
       )}
 
-      {/* 🔹 RESULTS */}
+      {/* RESULTS */}
       {hasSearched && (
-        <div className="p-6 max-w-3xl mx-auto animate-fade">
+        <div className="p-6 max-w-3xl mx-auto">
 
-          {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">Results</h1>
 
@@ -128,6 +123,7 @@ function App() {
                 setHasSearched(false);
                 setResults([]);
                 setUsername("");
+                setLanguage("");
               }}
               className="text-sm text-gray-400 hover:text-white"
             >
@@ -135,37 +131,56 @@ function App() {
             </button>
           </div>
 
-          {/* Search again */}
-          <div className="flex gap-2 mb-6 bg-[#161b22] border border-gray-700 p-2 rounded-xl">
-            <input
-              className="px-4 py-2 bg-transparent outline-none text-white placeholder-gray-500 w-full"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <button
-              onClick={fetchRecommendations}
-              className="bg-green-500 text-black px-4 py-2 rounded-lg hover:bg-green-400"
-            >
-              Search
-            </button>
+          {/* 🔥 HALF WIDTH SEARCH UI */}
+          <div className="mb-6 space-y-3 w-full md:w-1/2 mx-auto">
+
+            {/* Username display */}
+            <div className="px-3 py-2 bg-[#161b22] border border-gray-700 rounded-lg text-gray-300 flex items-center gap-2 text-sm">
+              <span className="text-green-400">👤</span>
+              <input
+                className="bg-transparent outline-none text-white placeholder-gray-500"
+                placeholder="GitHub username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+
+            {/* Search bar */}
+            <div className="flex items-center gap-2 bg-[#161b22] border border-gray-700 px-2 py-1.5 rounded-lg">
+
+              <span className="text-gray-400 text-sm">🔍</span>
+
+              <input
+                className="flex-1 bg-transparent outline-none text-white placeholder-gray-500 text-sm"
+                placeholder="Preferred language (e.g. Python)"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && fetchRecommendations()}
+              />
+
+              <button
+                onClick={fetchRecommendations}
+                className="bg-green-500 text-black px-3 py-1.5 rounded-md text-sm hover:bg-green-400"
+              >
+                Search
+              </button>
+
+            </div>
           </div>
 
-          {/* Loading */}
           {loading && (
             <p className="text-gray-400">🔍 Finding best matches...</p>
           )}
 
-          {/* Empty */}
           {!loading && results.length === 0 && (
             <p className="text-gray-500">No results found</p>
           )}
 
-          {/* Cards */}
           <div className="space-y-4">
             {results.map((item, i) => (
               <div
                 key={i}
-                className="bg-[#161b22] p-5 rounded-xl border border-gray-700 hover:border-green-500 hover:shadow-lg transition transform hover:-translate-y-1"
+                className="bg-[#161b22] p-5 rounded-xl border border-gray-700 hover:border-green-500 transition"
               >
                 <h2 className="text-lg font-semibold mb-1">
                   {item.issue_title}
@@ -175,10 +190,9 @@ function App() {
                   {item.repo_name}
                 </p>
 
-                {/* Score bar */}
                 <div className="w-full bg-gray-800 rounded-full h-2 mb-3">
                   <div
-                    className="bg-green-500 h-2 rounded-full transition-all"
+                    className="bg-green-500 h-2 rounded-full"
                     style={{ width: `${Math.min(item.score * 10, 100)}%` }}
                   ></div>
                 </div>
@@ -196,14 +210,13 @@ function App() {
                   >
                     View →
                   </a>
-                  <button onClick={() => handleExplain(item)} className="bg-green-500 text-black px-4 py-2 rounded-lg hover:bg-green-400">
-                    {loadingExplain === item.issue_url ? "Explaining..." : "Explain "}
+
+                  <button
+                    onClick={() => handleExplain(item)}
+                    className="bg-green-500 text-black px-4 py-2 rounded-lg hover:bg-green-400"
+                  >
+                    {loadingExplain === item.issue_url ? "Explaining..." : "Explain"}
                   </button>
-                  {explanations[item.issue_url] && (
-                    <div className="mt-3 text-sm text-gray-300 bg-[#0d1117] p-3 rounded">
-                      {explanations[item.issue_url]}
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
@@ -211,6 +224,7 @@ function App() {
 
         </div>
       )}
+
       {selectedExplanation && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
 
@@ -227,7 +241,7 @@ function App() {
               {selectedExplanation.title}
             </h2>
 
-            <div className="prose prose-invert max-w-none text-sm prose-headings:text-white prose-p:text-gray-300 prose-strong:text-white prose-li:text-gray-300 prose-code:bg-black prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-black prose-pre:p-3 prose-pre:rounded">
+            <div className="prose prose-invert max-w-none text-sm">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {selectedExplanation.text}
               </ReactMarkdown>

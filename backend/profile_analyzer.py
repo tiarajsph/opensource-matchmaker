@@ -21,3 +21,6 @@ def analyze_profile(repos):
         "top_languages": top_languages,
         "language_count": language_count
     }
+
+
+    
