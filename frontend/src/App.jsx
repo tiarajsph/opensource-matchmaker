@@ -25,7 +25,8 @@ function App() {
       }),
     });
 
-    const data = await res.json();
+   const data = await res.json();
+   console.log("DATA:", data);
 
     setSelectedExplanation({
       title: item.issue_title,
