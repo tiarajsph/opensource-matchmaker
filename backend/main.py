@@ -22,7 +22,7 @@ def home():
 
 
 @app.get("/recommend/{username}")
-def recommend(username: str, language: str = Query(None)):
+def recommend(username: str, language: str = Query(None), bypass_health: bool = Query(False)):
 
     try:
         language = language.strip() if isinstance(language, str) else language
@@ -33,12 +33,15 @@ def recommend(username: str, language: str = Query(None)):
 
         print("MATCHES:", matches)
 
-        filtered_matches = []
-        for match in matches:
-            repo = match.get("repo", {})
+        if bypass_health:
+            filtered_matches = matches
+        else:
+            filtered_matches = []
+            for match in matches:
+                repo = match.get("repo", {})
 
-            if check_repo_health(repo) >= 2:
-                filtered_matches.append(match)
+                if check_repo_health(repo) >= 2:
+                    filtered_matches.append(match)
 
         return {
             "username": username,
@@ -69,6 +72,19 @@ def test_health():
         "repo": repo["name"],
         "health_score": score
     }
+@app.get("/rate-limit")
+def rate_limit():
+    import requests
+
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "FirstIssue-App"
+    }
+
+    response = requests.get("https://api.github.com/rate_limit", headers=headers, timeout=10)
+    return response.json()
+
+
 @app.post("/explain")
 def explain(data: dict):
     title = data.get("title")

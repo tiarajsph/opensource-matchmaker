@@ -47,6 +47,8 @@ def get_user_repos(username):
     return repos
 
 def search_good_first_issues(language):
+    normalized_language = str(language).strip().lower() if language else ""
+
     query_parts = [
         'label:"good first issue"',
         'is:issue',
@@ -54,8 +56,8 @@ def search_good_first_issues(language):
         'archived:false',
     ]
 
-    if language and str(language).strip():
-        query_parts.append(f"language:{str(language).strip()}")
+    if normalized_language:
+        query_parts.append(f"language:{normalized_language}")
 
     query = "+".join(query_parts)
     url = f"https://api.github.com/search/issues?q={query}"
@@ -79,7 +81,7 @@ def search_good_first_issues(language):
             "issue_title": issue["title"],
             "issue_body": issue.get("body", ""),
             "issue_url": issue["html_url"],
-            "language": language,
+            "language": normalized_language or None,
             "assignees": issue.get("assignees", []),
             "comments": issue.get("comments", 0),
             "updated_at": issue.get("updated_at", None),
