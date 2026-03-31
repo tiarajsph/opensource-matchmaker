@@ -96,6 +96,7 @@ Open the local Vite server URL (shown in terminal) in your browser.
 
 ## Contribution Guidelines
 
+-Work on feature branches: feature/<module-name>
 - Pull latest changes before starting work
 - Write clear commit messages
 - Use Pull Requests for merging
