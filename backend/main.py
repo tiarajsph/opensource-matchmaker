@@ -22,7 +22,7 @@ def home():
 
 
 @app.get("/recommend/{username}")
-def recommend(username: str, language: str = Query(None)):
+def recommend(username: str, language: str = Query(None), bypass_health: bool = Query(False)):
 
     try:
         
@@ -30,12 +30,15 @@ def recommend(username: str, language: str = Query(None)):
 
         print("MATCHES:", matches)
 
-        filtered_matches = []
-        for match in matches:
-            repo = match.get("repo", {})
+        if bypass_health:
+            filtered_matches = matches
+        else:
+            filtered_matches = []
+            for match in matches:
+                repo = match.get("repo", {})
 
-            if check_repo_health(repo) >= 2:
-                filtered_matches.append(match)
+                if check_repo_health(repo) >= 2:
+                    filtered_matches.append(match)
 
         return {
             "username": username,
