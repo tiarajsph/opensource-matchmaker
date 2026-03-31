@@ -5,7 +5,10 @@ builder = "NIXPACKS"
 nixPkgs = ["python310"]
 
 [phases.install]
-cmds = ["pip install -r requirements.txt"]
+cmds = [
+  "python -m pip install --upgrade pip",
+  "pip install -r requirements.txt"
+]
 
 [deploy]
-startCommand = "uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
+startCommand = "python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
