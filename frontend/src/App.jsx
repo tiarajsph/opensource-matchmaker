@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import AnimatedBackground from "./components/AnimatedBackground";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -38,18 +39,7 @@ function App() {
     setLoadingExplain(null);
   };
 
-  useEffect(() => {
-    const handleMove = (e) => {
-      const glow = document.getElementById("glow");
-      if (glow) {
-        glow.style.left = e.clientX - 80 + "px";
-        glow.style.top = e.clientY - 80 + "px";
-      }
-    };
-
-    window.addEventListener("mousemove", handleMove);
-    return () => window.removeEventListener("mousemove", handleMove);
-  }, []);
+ 
 
   const fetchRecommendations = async () => {
     if (!username) return;
@@ -73,14 +63,7 @@ function App() {
   return (
     <div className="min-h-screen bg-[#0d1117] text-white relative overflow-hidden">
 
-      {/* Background */}
-      <div className="absolute inset-0 -z-20 bg-[linear-gradient(to_right,#22c55e10_1px,transparent_1px),linear-gradient(to_bottom,#22c55e10_1px,transparent_1px)] bg-[size:40px_40px]" />
-      <div className="absolute inset-0 -z-10 bg-green-500 opacity-10 blur-3xl animate-pulse" />
-
-      <div
-        id="glow"
-        className="fixed w-40 h-40 bg-green-500 opacity-20 blur-3xl rounded-full pointer-events-none"
-      ></div>
+     <AnimatedBackground />
 
       {/* LANDING */}
       {!hasSearched && (
