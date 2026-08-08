@@ -3,6 +3,11 @@ import AnimatedBackground from "./components/AnimatedBackground";
 import LandingPage from "./components/LandingPage";
 import IssueCard from "./components/IssueCard";
 import ExplanationModal from "./components/ExplanationModal";
+import ResultsPage from "./components/ResultsPage";
+import {
+  getRecommendations,
+  explainIssue,
+} from "./services/api";
 
 function App() {
   const [username, setUsername] = useState("");
@@ -16,23 +21,15 @@ function App() {
   const handleExplain = async (item) => {
     setLoadingExplain(item.issue_url);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/explain`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: item.issue_title,
-          body: item.issue_body || item.issue_title,
-        }),
-      });
+   const data = await explainIssue(
+  item.issue_title,
+  item.issue_body || item.issue_title
+);
 
-      const data = await res.json();
-
-      setSelectedExplanation({
-        title: item.issue_title,
-        text: data.explanation,
-      });
+setSelectedExplanation({
+  title: item.issue_title,
+  text: data.explanation,
+});
 
     } catch (err) {
       console.error(err);
@@ -49,11 +46,13 @@ function App() {
     setHasSearched(true);
 
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/recommend/${username}?language=${language}`
-      );
-      const data = await res.json();
-      setResults(data.recommendations || []);
+      
+    const data = await getRecommendations(
+  username,
+  language
+);
+
+setResults(data.recommendations || []);  
     } catch (err) {
       console.error(err);
     }
@@ -74,85 +73,23 @@ function App() {
   />
 )}
 
-      {/* RESULTS */}
       {hasSearched && (
-        <div className="p-6 max-w-3xl mx-auto">
-
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-semibold">Results</h1>
-
-            <button
-              onClick={() => {
-                setHasSearched(false);
-                setResults([]);
-                setUsername("");
-                setLanguage("");
-              }}
-              className="text-sm text-gray-400 hover:text-white"
-            >
-              ← Back
-            </button>
-          </div>
-
-          {/* 🔥 HALF WIDTH SEARCH UI */}
-          <div className="mb-6 space-y-3 w-full md:w-1/2 mx-auto">
-
-            {/* Username display */}
-            <div className="px-3 py-2 bg-[#161b22] border border-gray-700 rounded-lg text-gray-300 flex items-center gap-2 text-sm">
-              <span className="text-green-400">👤</span>
-              <input
-                className="bg-transparent outline-none text-white placeholder-gray-500"
-                placeholder="GitHub username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-
-            {/* Search bar */}
-            <div className="flex items-center gap-2 bg-[#161b22] border border-gray-700 px-2 py-1.5 rounded-lg">
-
-              <span className="text-gray-400 text-sm">🔍</span>
-
-              <input
-                className="flex-1 bg-transparent outline-none text-white placeholder-gray-500 text-sm"
-                placeholder="Preferred language (e.g. Python)"
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && fetchRecommendations()}
-              />
-
-              <button
-                onClick={fetchRecommendations}
-                className="bg-green-500 text-black px-3 py-1.5 rounded-md text-sm hover:bg-green-400"
-              >
-                Search
-              </button>
-
-            </div>
-          </div>
-
-          {loading && (
-            <p className="text-gray-400">🔍 Finding best matches...</p>
-          )}
-
-          {!loading && results.length === 0 && (
-            <p className="text-gray-500">No results found</p>
-          )}
-
-          <div className="space-y-4">
-  {results.map((item, i) => (
-    <IssueCard
-      key={i}
-      item={item}
-      handleExplain={handleExplain}
-      loadingExplain={loadingExplain}
-    />
-  ))}
-</div>
-
-        </div>
+  <ResultsPage
+    username={username}
+    setUsername={setUsername}
+    language={language}
+    setLanguage={setLanguage}
+    fetchRecommendations={fetchRecommendations}
+    loading={loading}
+    results={results}
+    loadingExplain={loadingExplain}
+    handleExplain={handleExplain}
+    setHasSearched={setHasSearched}
+    setResults={setResults}
+    setLanguageState={setLanguage}
+  />
       )}
-
+      
      <ExplanationModal
   selectedExplanation={selectedExplanation}
   setSelectedExplanation={setSelectedExplanation}
